@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>LoriBots – Payment</title>
+  <script>/* Prevent theme flash on load */
+(function(){var t=localStorage.getItem('lb-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    body { overflow: auto; display: flex; flex-direction: column; min-height: 100vh; align-items: center; justify-content: center; padding: 1.5rem; }
+    .pay-wrap { width: 100%; max-width: 460px; }
+    .pay-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+    .back-link { font-size: .75rem; color: var(--sub); cursor: pointer; display: flex; align-items: center; gap: .3rem; }
+    .back-link:hover { color: var(--acc); }
+    .logo { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--acc); }
+
+    /* Steps */
+    .psteps { display: flex; background: var(--surface); border-radius: 7px; padding: 3px; gap: 3px; margin-bottom: 1rem; }
+    .pst { flex: 1; text-align: center; font-size: .67rem; padding: .3rem; border-radius: 5px; color: var(--sub); }
+    .pst.on   { background: var(--panel); color: var(--acc); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    .pst.done { color: var(--gl); }
+
+    /* Plan box */
+    .planbox { background: var(--surface); border: 2px solid var(--acc); border-radius: 10px; padding: .85rem; margin-bottom: .75rem; }
+    .pprice  { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--acc); }
+    .pperiod { font-size: .68rem; color: var(--sub); margin-top: .1rem; }
+    .pfeat   { list-style: none; margin-top: .6rem; }
+    .pfeat li { font-size: .72rem; color: var(--sub); padding: .2rem 0; display: flex; align-items: center; gap: .4rem; border-bottom: 1px solid var(--border); }
+    .pfeat li:last-child { border-bottom: none; }
+    .chk { color: var(--gl); }
+
+    /* Billing toggle */
+    .btog { display: flex; background: var(--surface); border-radius: 7px; padding: 3px; gap: 3px; margin-bottom: .65rem; }
+    .btb  { flex: 1; padding: .3rem; border: none; border-radius: 5px; cursor: pointer; font-size: .7rem; font-weight: 600; background: none; color: var(--sub); transition: all .13s; font-family: 'Inter', sans-serif; }
+    .btb.on { background: var(--acc); color: #fff; }
+    .fnote { font-size: .63rem; color: var(--gl); background: var(--gbg); padding: .18rem .55rem; border-radius: 20px; display: inline-block; margin-bottom: .75rem; }
+
+    /* Card form */
+    .card-section { border-top: 1px solid var(--border); padding-top: .85rem; margin-top: .85rem; }
+    .snote { display: flex; align-items: center; gap: .35rem; justify-content: center; font-size: .65rem; color: var(--sub); margin-top: .5rem; }
+    .slogo { background: #635bff; color: #fff; font-size: .58rem; font-weight: 700; padding: .08rem .3rem; border-radius: 3px; }
+
+    /* Success screen */
+    #success-screen { display: none; text-align: center; }
+    #success-screen.show { display: block; }
+    .success-icon { font-size: 3rem; margin-bottom: .65rem; }
+    .rcr { display: flex; justify-content: space-between; padding: .25rem 0; border-bottom: 1px solid var(--border); font-size: .73rem; }
+    .rcr:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+<div class="pay-wrap">
+
+  <!-- PAYMENT FORM -->
+  <div id="pay-screen">
+    <div class="pay-header">
+      <span class="back-link" onclick="window.location.href='index.html'">← Back</span>
+      <div class="logo">LoriBots</div>
+      <button class="thbtn" onclick="toggleTheme()">🌙 Dark Mode</button>
+    </div>
+
+    <div class="psteps">
+      <div class="pst done">✓ Details</div>
+      <div class="pst on">💳 Payment</div>
+      <div class="pst">✅ Access</div>
+    </div>
+
+    <!-- OWNER PLAN -->
+    <div id="owner-plan">
+      <div class="mb1">
+        <div class="b s">Company Subscription</div>
+        <div class="xs mu">Unlimited posts, bids, tracking &amp; payments · cancel anytime</div>
+      </div>
+      <div class="btog">
+        <button class="btb on" id="btm" onclick="setCycle('m')">Monthly</button>
+        <button class="btb"    id="bta" onclick="setCycle('a')">Annual &nbsp;<span style="color:var(--gl)">–15%</span></button>
+      </div>
+      <div class="planbox">
+        <div class="pprice" id="owner-price">P 550</div>
+        <div class="pperiod" id="owner-period">per month · billed monthly · cancel anytime</div>
+        <ul class="pfeat">
+          <li><span class="chk">✓</span>Unlimited freight job posts</li>
+          <li><span class="chk">✓</span>Manage bids — accept, reject or counter</li>
+          <li><span class="chk">✓</span>Live GPS shipment tracking</li>
+          <li><span class="chk">✓</span>Stripe payments &amp; proof of delivery</li>
+          <li><span class="chk">✓</span>In-app chat &amp; push notifications</li>
+          <li><span class="chk">✓</span>Driver ratings &amp; dispute protection</li>
+        </ul>
+      </div>
+      <div class="fnote" id="owner-note">🔄 Auto-renews monthly. Manage in Billing settings.</div>
+    </div>
+
+    <!-- DRIVER PLAN -->
+    <div id="driver-plan" class="hidden">
+      <div class="mb1">
+        <div class="b s">Driver Registration</div>
+        <div class="xs mu">One-time fee · no monthly charges · lifetime access</div>
+      </div>
+      <div class="planbox">
+        <div class="pprice">P 250</div>
+        <div class="pperiod">once-off · lifetime platform access</div>
+        <ul class="pfeat">
+          <li><span class="chk">✓</span>Verified driver badge on profile</li>
+          <li><span class="chk">✓</span>Browse &amp; bid on all available loads</li>
+          <li><span class="chk">✓</span>Accept fixed-price jobs instantly</li>
+          <li><span class="chk">✓</span>Auto-payment on delivery confirmation</li>
+          <li><span class="chk">✓</span>Earnings dashboard &amp; job history</li>
+          <li><span class="chk">✓</span>Commission per job only — no hidden fees</li>
+        </ul>
+      </div>
+      <div class="fnote">✅ Pay once. Earn on every delivery.</div>
+    </div>
+
+    <!-- CARD FORM -->
+    <div class="card-section">
+      <div class="fg mb1"><label class="lbl">Cardholder Name</label><input class="inp" id="pn" placeholder="Name on card"/></div>
+      <div class="fg mb1"><label class="lbl">Card Number</label><input class="inp" id="pc" placeholder="1234  5678  9012  3456" maxlength="19" oninput="fmtCard(this)"/></div>
+      <div style="display:grid;grid-template-columns:1fr 80px 105px;gap:.45rem;margin-bottom:.75rem;">
+        <div class="fg"><label class="lbl">Expiry</label><input class="inp" id="pe" placeholder="MM / YY" maxlength="7" oninput="fmtExp(this)"/></div>
+        <div class="fg"><label class="lbl">CVV</label><input class="inp" id="pv" placeholder="•••" type="password" maxlength="4"/></div>
+        <div class="fg"><label class="lbl">Currency</label><select class="sel"><option>BWP</option><option>ZAR</option><option>USD</option></select></div>
+      </div>
+      <button class="btn ba w100 blg" id="pay-btn" onclick="processPayment()">
+        <span id="pay-lbl">Pay P 550 / month →</span>
+      </button>
+      <div class="snote">
+        <span class="slogo">stripe</span>
+        Secured by Stripe · 256-bit TLS · PCI DSS compliant
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS SCREEN -->
+  <div id="success-screen">
+    <div class="success-icon">✅</div>
+    <div class="b syne mb1" style="font-size:.95rem;" id="s-title">Payment Successful</div>
+    <div class="xs mu mb2" id="s-sub">Account now active.</div>
+    <div class="card mb2" style="text-align:left;padding:.65rem;">
+      <div class="rcr"><span class="mu xs">Plan</span><span class="b xs" id="r-plan">–</span></div>
+      <div class="rcr"><span class="mu xs">Amount</span><span class="b xs am" id="r-amt">–</span></div>
+      <div class="rcr"><span class="mu xs">Next Billing</span><span class="b xs" id="r-next">–</span></div>
+      <div class="rcr"><span class="mu xs">Transaction</span><span class="b xs" id="r-txn">–</span></div>
+    </div>
+    <button class="btn ba w100 blg" onclick="goToDashboard()">Enter LoriBots →</button>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="shared.js"></script>
+<script>
+  /* ── READ ROLE FROM URL ── */
+  const params = new URLSearchParams(window.location.search);
+  let payRole  = params.get('role') || 'owner';  /* 'owner' or 'driver' */
+  let cycle    = 'm';
+
+  /* Show correct plan on load */
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('owner-plan').classList.toggle('hidden', payRole !== 'owner');
+    document.getElementById('driver-plan').classList.toggle('hidden', payRole !== 'driver');
+    document.getElementById('pay-lbl').textContent = payRole === 'driver'
+      ? 'Pay P 250 (Once-off) →'
+      : 'Pay P 550 / month →';
+  });
+
+  /* ── BILLING CYCLE TOGGLE (owner only) ── */
+  function setCycle(c) {
+    cycle = c;
+    document.getElementById('btm').classList.toggle('on', c === 'm');
+    document.getElementById('bta').classList.toggle('on', c === 'a');
+    if (c === 'a') {
+      document.getElementById('owner-price').textContent  = 'P 5,610';
+      document.getElementById('owner-period').textContent = 'per year · billed annually · save P 1,290';
+      document.getElementById('owner-note').textContent   = '🔄 Auto-renews annually.';
+      document.getElementById('pay-lbl').textContent      = 'Pay P 5,610 / year →';
+    } else {
+      document.getElementById('owner-price').textContent  = 'P 550';
+      document.getElementById('owner-period').textContent = 'per month · billed monthly · cancel anytime';
+      document.getElementById('owner-note').textContent   = '🔄 Auto-renews monthly. Manage in Billing.';
+      document.getElementById('pay-lbl').textContent      = 'Pay P 550 / month →';
+    }
+  }
+
+  /* ── CARD FORMATTERS ── */
+  function fmtCard(el) {
+    let v = el.value.replace(/\D/g, '').slice(0, 16);
+    el.value = v.replace(/(.{4})/g, '$1  ').trim();
+  }
+  function fmtExp(el) {
+    let v = el.value.replace(/\D/g, '');
+    if (v.length >= 2) v = v.slice(0, 2) + ' / ' + v.slice(2, 4);
+    el.value = v;
+  }
+
+  /* ── PROCESS PAYMENT ── */
+  function processPayment() {
+    const name = document.getElementById('pn').value.trim();
+    const card = document.getElementById('pc').value.replace(/\s/g, '');
+    const exp  = document.getElementById('pe').value;
+    const cvv  = document.getElementById('pv').value;
+
+    if (!name || card.length < 16 || !exp || cvv.length < 3) {
+      toast('Please fill in all card details.', 'err');
+      return;
+    }
+
+    const btn = document.getElementById('pay-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span style="opacity:.7">Processing payment…</span>';
+
+    /* Simulate Stripe processing (2s delay) */
+    setTimeout(() => {
+      btn.disabled = false;
+      showSuccess();
+    }, 2000);
+  }
+
+  /* ── SHOW SUCCESS RECEIPT ── */
+  function showSuccess() {
+    const txn  = 'TXN-' + Math.floor(Math.random() * 900000 + 100000);
+    const now  = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+                   .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    if (payRole === 'driver') {
+      document.getElementById('s-title').textContent = 'Registration Complete!';
+      document.getElementById('s-sub').textContent   = 'P 250 paid. Awaiting admin document verification.';
+      document.getElementById('r-plan').textContent  = 'Driver Registration (Once-off)';
+      document.getElementById('r-amt').textContent   = 'P 250.00';
+      document.getElementById('r-next').textContent  = 'N/A – No recurring charges';
+    } else {
+      document.getElementById('s-title').textContent = 'Subscription Active!';
+      document.getElementById('s-sub').textContent   = 'Company plan is live. Welcome to LoriBots!';
+      document.getElementById('r-plan').textContent  = cycle === 'a' ? 'Company Annual' : 'Company Monthly';
+      document.getElementById('r-amt').textContent   = cycle === 'a' ? 'P 5,610.00' : 'P 550.00';
+      document.getElementById('r-next').textContent  = cycle === 'a'
+        ? new Date(now.getFullYear() + 1, now.getMonth(), now.getDate())
+            .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+        : next;
+    }
+    document.getElementById('r-txn').textContent = txn;
+    document.getElementById('pay-screen').style.display    = 'none';
+    document.getElementById('success-screen').classList.add('show');
+  }
+
+  /* ── GO TO DASHBOARD ── */
+  function goToDashboard() {
+    if (payRole === 'driver') {
+      window.location.href = 'driver.html';
+    } else {
+      window.location.href = 'cargo-owner.html';
+    }
+  }
+</script>
+</body>
+</html>
