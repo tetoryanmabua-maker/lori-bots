@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>LoriBots – Cargo Owner</title>
+  <script>/* Prevent theme flash on load */
+(function(){var t=localStorage.getItem('lb-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body style="overflow:hidden;">
+
+<!-- ══════════════════════════════════════
+     TOP BAR
+══════════════════════════════════════ -->
+<div style="display:flex;flex-direction:column;height:100vh;">
+  <div class="topbar">
+    <div class="flex ac gap1">
+      <div class="tlogo">LoriBots <em>Platform</em></div>
+      <span class="bdg bgx">Cargo Owner</span>
+    </div>
+    <div class="tright">
+      <button class="thbtn" onclick="toggleTheme()">🌙 Dark Mode</button>
+      <div class="upill"><div class="udot"></div><span>Owner</span></div>
+      <button class="btn bgh bsm" onclick="window.location.href='index.html'">Logout</button>
+    </div>
+  </div>
+
+  <!-- LAYOUT: Sidebar + Content -->
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sb">
+      <div class="sbsec">Overview</div>
+      <button class="sbi on" onclick="navTo('dashboard',this)"><span class="sbico">⊞</span>Dashboard</button>
+
+      <div class="sbsec">Jobs</div>
+      <button class="sbi" onclick="navTo('post-load',this)"><span class="sbico">＋</span>Post a Load</button>
+      <button class="sbi" onclick="navTo('my-jobs',this)"><span class="sbico">≡</span>My Jobs</button>
+      <button class="sbi" onclick="navTo('track',this)"><span class="sbico">◎</span>Live Tracking</button>
+
+      <div class="sbsec">Account</div>
+      <button class="sbi" onclick="navTo('chat',this)"><span class="sbico">◈</span>Messages</button>
+      <button class="sbi" onclick="navTo('billing',this)"><span class="sbico">◷</span>Billing</button>
+      <button class="sbi" onclick="navTo('notifs',this)"><span class="sbico">◻</span>Notifications</button>
+
+      <div class="sbft"><div class="xs mu">LoriBots v2.0 · 2026</div></div>
+    </aside>
+
+    <!-- CONTENT AREA -->
+    <main class="ct" id="ct"></main>
+  </div>
+</div>
+
+<!-- BID MODAL -->
+<div class="ov" id="bov">
+  <div class="modal">
+    <button class="mcl" onclick="document.getElementById('bov').classList.remove('open')">✕</button>
+    <div class="b s mb1">Incoming Bid</div>
+    <div class="xs mu mb2">Job <span id="bid-job" class="am b"></span></div>
+    <div class="card mb2" style="background:var(--surface);">
+      <div class="flex ac jb"><div><div class="b xs">Kgosi Transport Co.</div><div class="xs mu">Flatbed 30T · ★4.9 · <span class="am b" id="bid-price"></span></div></div></div>
+    </div>
+    <div class="flex gap1">
+      <button class="btn bg_ w100" onclick="toast('Bid accepted! Driver notified.');document.getElementById('bov').classList.remove('open')">Accept</button>
+      <button class="btn br" onclick="toast('Bid rejected.');document.getElementById('bov').classList.remove('open')">Reject</button>
+      <button class="btn bb" onclick="toast('Counter-offer sent!');document.getElementById('bov').classList.remove('open')">Counter</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="shared.js"></script>
+<script>
+
+  /* ── NAVIGATION ── */
+  function navTo(page, btn) {
+    document.querySelectorAll('.sbi').forEach(b => b.classList.remove('on'));
+    if (btn) btn.classList.add('on');
+    document.getElementById('ct').innerHTML = pages[page] ? pages[page]() : '<p class="xs mu">Coming soon.</p>';
+  }
+
+  /* ── PAGES ── */
+  const pages = {
+
+    /* ── DASHBOARD ── */
+    'dashboard': () => `
+      <div class="ph">
+        <div><div class="pt">Dashboard</div><div class="ps">Tue, 12 Apr 2026 · Gaborone</div></div>
+        <button class="btn ba bsm" onclick="navTo('post-load')">＋ Post Load</button>
+      </div>
+      <div class="gkpi mb2">
+        ${kpi('5','Active Jobs','2 this week',true)}
+        ${kpi('12','Completed','↑ from 9',true)}
+        ${kpi('8','Open Bids','3 new',true)}
+        ${kpi('P42K','Total Spend','',false)}
+      </div>
+      <div class="g2">
+        <div>
+          <div class="flex ac jb mb1"><div class="b s">Recent Jobs</div><span class="xs mu">Last 7 days</span></div>
+          ${[
+            ['Steel Beams 20T','FTN→GBR','P8,000','in-transit'],
+            ['Maize Meal 15T','GBR→MUN','P5,500','pending'],
+            ['Livestock 40 cattle','MUN→LOB','P11,000','delivered']
+          ].map(([c,r,p,s]) => `
+          <div class="jc_ flex ac jb">
+            <div><div class="b xs">${c}</div><div class="xs mu">${r} · ${p}</div></div>
+            <span class="bdg ${s==='delivered'?'bgg':s==='in-transit'?'bgb':'bga'}">
+              ${s==='delivered'?'Delivered':s==='in-transit'?'In Transit':'Pending'}
+            </span>
+          </div>`).join('')}
+        </div>
+        <div>
+          <div class="flex ac jb mb1"><div class="b s">Active Shipment</div></div>
+          ${mapWidget('Job #1042 · Francistown → Gaborone')}
+          <div class="card mt1 flex ac jb">
+            <div><div class="b xs">Job #1042 · Steel Beams</div><div class="xs mu">Mpho Ditsebe · 87 km left · ETA 2h 14m</div></div>
+            <button class="btn bb bsm" onclick="navTo('track')">Track</button>
+          </div>
+        </div>
+      </div>`,
+
+    /* ── POST A LOAD ── */
+    'post-load': () => `
+      <div class="ph">
+        <div><div class="pt">Post a Freight Job</div><div class="ps">Fill in details to receive bids from verified drivers</div></div>
+      </div>
+      <div class="card">
+        <div class="frow">
+          <div class="fg"><label class="lbl">Pickup Address</label><input class="inp" placeholder="Street, City"/></div>
+          <div class="fg"><label class="lbl">Delivery Address</label><input class="inp" placeholder="Street, City"/></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label class="lbl">Cargo Type</label>
+            <select class="sel"><option>General</option><option>Construction</option><option>Agricultural</option><option>Hazardous</option><option>Refrigerated</option><option>Livestock</option></select>
+          </div>
+          <div class="fg"><label class="lbl">Weight (Tonnes)</label><input class="inp" type="number" placeholder="e.g. 15"/></div>
+          <div class="fg"><label class="lbl">Truck Type</label>
+            <select class="sel"><option>Any</option><option>Flatbed</option><option>Curtainsider</option><option>Refrigerated</option><option>Tanker</option><option>Tipper</option></select>
+          </div>
+          <div class="fg"><label class="lbl">Job Date</label><input class="inp" type="date"/></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label class="lbl">Offered Price (BWP)</label><input class="inp" type="number" placeholder="e.g. 5000"/></div>
+          <div class="fg"><label class="lbl">Pricing Mode</label>
+            <select class="sel"><option>Fixed Price</option><option>Open to Bids</option></select>
+          </div>
+        </div>
+        <div class="fg mb2"><label class="lbl">Special Instructions</label>
+          <textarea class="ta" placeholder="Fragile, hazmat, loading equipment, time-sensitive…"></textarea>
+        </div>
+        <div class="flex gap1">
+          <button class="btn ba blg" onclick="toast('Job posted! Receiving bids shortly.')">Publish Job</button>
+          <button class="btn bgh" onclick="toast('Draft saved.')">Save Draft</button>
+        </div>
+      </div>`,
+
+    /* ── MY JOBS ── */
+    'my-jobs': () => `
+      <div class="ph">
+        <div><div class="pt">My Jobs</div><div class="ps">Manage posted loads and incoming bids</div></div>
+        <button class="btn ba bsm" onclick="navTo('post-load')">＋ New Job</button>
+      </div>
+      <div class="chips">
+        <button class="chip on" onclick="chip(this)">All</button>
+        <button class="chip" onclick="chip(this)">Pending Bids</button>
+        <button class="chip" onclick="chip(this)">In Transit</button>
+        <button class="chip" onclick="chip(this)">Delivered</button>
+      </div>
+      ${[
+        {id:'#1042',c:'Steel Beams 20T',r:'Francistown → Gaborone',p:'P 8,000',s:'in-transit',d:'Mpho Ditsebe',bids:0},
+        {id:'#1039',c:'Maize Meal 15T',r:'Gaborone → Maun',p:'P 5,500',s:'pending',d:null,bids:5},
+        {id:'#1035',c:'Livestock – 40 Cattle',r:'Maun → Lobatse',p:'P 11,000',s:'delivered',d:'Oitshepile K.',bids:0}
+      ].map(j => `
+      <div class="jc_">
+        <div class="flex ac jb mb1">
+          <div><div class="b xs">${j.c}</div><div class="xs mu">${j.id} · ${j.r} · ${j.p}</div></div>
+          <span class="bdg ${j.s==='delivered'?'bgg':j.s==='in-transit'?'bgb':'bga'}">
+            ${j.s==='delivered'?'✅ Delivered':j.s==='in-transit'?'🚛 In Transit':'⏳ '+j.bids+' Bids'}
+          </span>
+        </div>
+        ${j.s==='pending'&&j.bids>0 ? `
+          <div class="card mb1" style="background:var(--surface);">
+            <div class="flex ac jb">
+              <div><div class="b xs">Kgosi Transport Co.</div><div class="xs mu">Flatbed 30T · ★4.9 · P7,800</div></div>
+              <div class="flex gap1">
+                <button class="btn bg_ bsm" onclick="toast('Bid accepted!')">Accept</button>
+                <button class="btn bgh bsm" onclick="toast('Bid rejected.')">Reject</button>
+                <button class="btn bb bsm" onclick="toast('Counter sent.')">Counter</button>
+              </div>
+            </div>
+          </div>` : ''}
+        ${j.s==='in-transit' ? `
+          <div class="flex gap1">
+            <button class="btn bb bsm" onclick="navTo('track')">🗺️ Track Live</button>
+            <button class="btn bgh bsm" onclick="navTo('chat')">💬 Chat Driver</button>
+          </div>` : ''}
+        ${j.s==='delivered' ? `
+          <div class="flex ac gap2">
+            <div class="flex" id="sr-${j.id}">
+              ${[1,2,3,4,5].map(i=>`<span class="star lit" onclick="setRating('${j.id}',${i})">★</span>`).join('')}
+            </div>
+            <button class="btn ba bsm" onclick="toast('Review submitted!')">Submit Review</button>
+            <span class="xs mu">Driver: ${j.d}</span>
+          </div>` : ''}
+      </div>`).join('')}`,
+
+    /* ── LIVE TRACKING ── */
+    'track': () => `
+      <div class="ph">
+        <div><div class="pt">Live Tracking</div><div class="ps">Real-time GPS for active shipments</div></div>
+        <span class="bdg bgg">● 3 Active</span>
+      </div>
+      <div class="g2">
+        <div>
+          ${mapWidget('Job #1042 · Steel Beams · Francistown → Gaborone')}
+          <div class="card mt1">
+            <div class="flex ac jb mb1">
+              <div><div class="b xs">Job #1042 – Steel Beams 20T</div><div class="xs mu">Driver: Mpho Ditsebe · B 412 XYZ</div></div>
+              <span class="bdg bgb">🚛 In Transit</span>
+            </div>
+            <div class="g4 mb1">
+              <div><div class="xs mu">Distance</div><div class="b am">87 km</div></div>
+              <div><div class="xs mu">ETA</div><div class="b am">2h 14m</div></div>
+              <div><div class="xs mu">Speed</div><div class="b">82 km/h</div></div>
+              <div><div class="xs mu">Updated</div><div class="b">Just now</div></div>
+            </div>
+            <div class="pb"><div class="pf" style="width:58%"></div></div>
+            <div class="xs mu mt1">58% of route complete</div>
+          </div>
+        </div>
+        <div>${chatWidget('Mpho Ditsebe (Driver)')}</div>
+      </div>`,
+
+    /* ── MESSAGES ── */
+    'chat': () => `
+      <div class="ph"><div class="pt">Messages</div></div>
+      ${chatWidget('Mpho Ditsebe – Job #1042')}`,
+
+    /* ── BILLING ── */
+    'billing': () => `
+      <div class="ph">
+        <div><div class="pt">Billing & Subscription</div><div class="ps">Manage your company plan</div></div>
+      </div>
+      <div class="g2">
+        <div>
+          <div class="card mb1">
+            <div class="flex ac jb mb1"><div class="b s">Current Plan</div><span class="bdg bgg">● Active</span></div>
+            <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--acc);">P 550</div>
+            <div class="xs mu mb1">Company Monthly · renews 1 May 2026</div>
+            <div class="pb mb1"><div class="pf" style="width:40%"></div></div>
+            <div class="xs mu mb2">12 days into current billing cycle</div>
+            <div class="flex gap1">
+              <button class="btn bgh bsm" onclick="toast('Annual saves P 1,290/year!')">Upgrade Annual</button>
+              <button class="btn br bsm" onclick="toast('Cancelled. Access until 1 May 2026.')">Cancel</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="flex ac jb mb1">
+              <div class="b s">Payment Method</div>
+              <button class="btn bgh bsm" onclick="toast('Card updated.')">Update</button>
+            </div>
+            <div class="flex ac gap1">
+              <div style="font-size:1.3rem">💳</div>
+              <div><div class="b xs">Visa •••• 4242</div><div class="xs mu">Expires 08/27</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="flex ac jb mb1">
+            <div class="b s">Billing History</div>
+            <button class="btn bgh bsm" onclick="toast('Exported.')">CSV</button>
+          </div>
+          ${[
+            ['1 Apr 2026','P 550.00','TXN-882100'],
+            ['1 Mar 2026','P 550.00','TXN-871240'],
+            ['1 Feb 2026','P 550.00','TXN-859330'],
+            ['1 Jan 2026','P 550.00','TXN-847120']
+          ].map(([d,a,t]) => `
+          <div class="rcr">
+            <div><div class="b xs">Company Monthly</div><div class="xs mu">${d} · ${t}</div></div>
+            <div class="flex ac gap1"><span class="b xs gn">${a}</span>
+              <button class="btn bgh bsm" onclick="toast('Downloaded.')">⬇</button>
+            </div>
+          </div>`).join('')}
+          <div class="xs mu mt1">Total: <span class="b am">P 2,200.00</span></div>
+        </div>
+      </div>`,
+
+    /* ── NOTIFICATIONS ── */
+    'notifs': () => `
+      <div class="ph">
+        <div><div class="pt">Notifications</div></div>
+        <button class="btn bgh bsm" onclick="toast('All marked read.')">Mark all read</button>
+      </div>
+      ${notifList()}`,
+  };
+
+  /* ── LOAD DEFAULT PAGE ── */
+  navTo('dashboard');
+</script>
+</body>
+</html>
