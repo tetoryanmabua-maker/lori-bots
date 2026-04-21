@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>LoriBots – Admin Dashboard</title>
+  <script>/* Prevent theme flash on load */
+(function(){var t=localStorage.getItem('lb-theme')||'light';document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body style="overflow:hidden;">
+
+<div style="display:flex;flex-direction:column;height:100vh;">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="flex ac gap1">
+      <div class="tlogo">LoriBots <em>Platform</em></div>
+      <span class="bdg bgr">Admin</span>
+    </div>
+    <div class="tright">
+      <button class="thbtn" onclick="toggleTheme()">🌙 Dark Mode</button>
+      <div class="upill"><div class="udot"></div><span>Admin</span></div>
+      <button class="btn bgh bsm" onclick="window.location.href='index.html'">Logout</button>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sb">
+      <div class="sbsec">Overview</div>
+      <button class="sbi on" onclick="navTo('overview',this)"><span class="sbico">⊞</span>Overview</button>
+
+      <div class="sbsec">Management</div>
+      <button class="sbi" onclick="navTo('users',this)"><span class="sbico">◎</span>Users</button>
+      <button class="sbi" onclick="navTo('livejobs',this)"><span class="sbico">▷</span>Live Jobs</button>
+      <button class="sbi" onclick="navTo('payments',this)"><span class="sbico">◷</span>Payments</button>
+
+      <div class="sbsec">Analytics</div>
+      <button class="sbi" onclick="navTo('reports',this)"><span class="sbico">≡</span>Reports</button>
+      <button class="sbi" onclick="navTo('notifs',this)"><span class="sbico">◻</span>Notifications</button>
+
+      <div class="sbft"><div class="xs mu">LoriBots v2.0 · 2026</div></div>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="ct" id="ct"></main>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="shared.js"></script>
+<script>
+
+  function navTo(page, btn) {
+    document.querySelectorAll('.sbi').forEach(b => b.classList.remove('on'));
+    if (btn) btn.classList.add('on');
+    document.getElementById('ct').innerHTML = pages[page] ? pages[page]() : '<p class="xs mu">Coming soon.</p>';
+  }
+
+  const pages = {
+
+    /* ── OVERVIEW ── */
+    'overview': () => `
+      <div class="ph">
+        <div><div class="pt">Admin Overview</div><div class="ps">Platform health at a glance</div></div>
+        <span class="bdg bgr b">Admin</span>
+      </div>
+      <div class="gkpi mb2">
+        ${kpi('1,248','Total Users','48 new',true)}
+        ${kpi('342','Drivers','12 pending',false)}
+        ${kpi('24','Live Jobs','',false)}
+        ${kpi('P148K','Apr Revenue','↑18%',true)}
+        ${kpi('P46.2K','Sub Revenue','84 cos.',true)}
+        ${kpi('3','Disputes','',false)}
+      </div>
+      <div class="g2">
+        ${mapWidget('24 Active Shipments Across Botswana')}
+        <div class="card">
+          <div class="b xs mb1">Commission Rate</div>
+          <div class="fg mb1">
+            <label class="lbl">Per-Job Commission (%)</label>
+            <input type="range" min="5" max="25" value="10" style="width:100%;accent-color:var(--acc);"
+              oninput="document.getElementById('cv').textContent=this.value+'%'"/>
+            <div class="flex jb xs mu mt1"><span>5%</span><span id="cv" class="b am">10%</span><span>25%</span></div>
+          </div>
+          <button class="btn ba bsm mb2" onclick="toast('Commission rate saved.')">Save Rate</button>
+          <div class="dv"></div>
+          <div class="b xs mb1">Push Notification</div>
+          <div class="fg mb1"><label class="lbl">Send To</label>
+            <select class="sel"><option>All Users</option><option>Cargo Owners</option><option>Drivers</option></select>
+          </div>
+          <div class="fg mb1"><label class="lbl">Message</label>
+            <textarea class="ta" placeholder="System announcement…"></textarea>
+          </div>
+          <button class="btn bb bsm" onclick="toast('Push notification sent to all users!')">Send Push</button>
+        </div>
+      </div>`,
+
+    /* ── USERS ── */
+    'users': () => `
+      <div class="ph">
+        <div><div class="pt">User Management</div><div class="ps">Verify drivers, manage accounts</div></div>
+        <input class="inp" style="width:160px" placeholder="Search users…"/>
+      </div>
+      <div class="chips">
+        <button class="chip on" onclick="chip(this)">All</button>
+        <button class="chip" onclick="chip(this)">Pending</button>
+        <button class="chip" onclick="chip(this)">Verified</button>
+        <button class="chip" onclick="chip(this)">Suspended</button>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>Name</th><th>Role</th><th>City</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody>
+        ${[
+          ['Mpho Ditsebe','Driver','Gaborone','verified','Jan 12'],
+          ['Kgosi Freight Ltd.','Owner','Francistown','verified','Feb 03'],
+          ['Oitshepile K.','Driver','Maun','pending','Apr 09'],
+          ['Bontle Express','Owner','Gaborone','verified','Mar 15'],
+          ['Tshepang Tankers','Driver','Lobatse','pending','Apr 10'],
+          ['CoolChain Bots','Owner','Kasane','suspended','Dec 20'],
+        ].map(([n,r,c,s,j]) => `<tr>
+          <td class="b xs">${n}</td>
+          <td><span class="bdg ${r==='Driver'?'bgb':'bga'}">${r}</span></td>
+          <td class="xs mu">${c}</td>
+          <td><span class="bdg ${s==='verified'?'bgg':s==='suspended'?'bgr':'bga'}">${s}</span></td>
+          <td class="xs mu">${j}</td>
+          <td><div class="flex gap1">
+            ${s==='pending'   ? `<button class="btn bg_ bsm" onclick="toast('Approved!')">Approve</button><button class="btn br bsm" onclick="toast('Rejected.')">Reject</button>` : ''}
+            ${s==='verified'  ? `<button class="btn bgh bsm" onclick="toast('Suspended.')">Suspend</button>` : ''}
+            ${s==='suspended' ? `<button class="btn bb bsm" onclick="toast('Reinstated.')">Reinstate</button>` : ''}
+          </div></td>
+        </tr>`).join('')}
+        </tbody>
+      </table></div>`,
+
+    /* ── LIVE JOBS ── */
+    'livejobs': () => `
+      <div class="ph">
+        <div><div class="pt">Live Job Monitor</div><div class="ps">All active deliveries in real time</div></div>
+        <span class="bdg bgg">● 24 Active</span>
+      </div>
+      ${mapWidget('24 Live Shipments – Botswana Wide')}
+      <div class="tw mt1"><table>
+        <thead><tr><th>Job ID</th><th>Cargo</th><th>Route</th><th>Driver</th><th>Status</th><th>ETA</th><th>Value</th></tr></thead>
+        <tbody>
+        ${[
+          ['#1042','Steel Beams','FTN→GBR','Mpho D.','bgb','2h 14m','P8,000'],
+          ['#1043','Diesel Fuel','LOB→KAS','Tshepang T.','bgb','5h 30m','P14,000'],
+          ['#1044','Beef Carcasses','MUN→GBR','Oitshepile K.','bga','8h 00m','P9,000'],
+          ['#1045','Constr. Sand','GBR→JWN','Ditiro H.','bgb','1h 45m','P3,200'],
+        ].map(([id,c,r,d,s,e,v]) => `<tr>
+          <td class="b xs am">${id}</td><td class="xs">${c}</td><td class="xs">${r}</td><td class="xs">${d}</td>
+          <td><span class="bdg ${s}">${s==='bga'?'Pickup':'Transit'}</span></td>
+          <td class="xs">${e}</td><td class="b xs">${v}</td>
+        </tr>`).join('')}
+        </tbody>
+      </table></div>`,
+
+    /* ── PAYMENTS ── */
+    'payments': () => `
+      <div class="ph">
+        <div><div class="pt">Payments &amp; Revenue</div><div class="ps">Subscriptions, commissions &amp; payouts</div></div>
+        <button class="btn bgh bsm" onclick="toast('Exported to CSV.')">CSV</button>
+      </div>
+      <div class="gkpi mb2">
+        ${kpi('P148K','Job Revenue','↑18%',true)}
+        ${kpi('P14.8K','Commission (10%)','',false)}
+        ${kpi('P133K','Driver Payouts','',false)}
+        ${kpi('P46.2K','Sub Revenue','84 cos.',true)}
+        ${kpi('P85.5K','Driver Reg. Fees','342 drivers',true)}
+        ${kpi('3','Open Disputes','',false)}
+      </div>
+      <div class="g2 mb1">
+        <div class="card">
+          <div class="b xs mb1">Company Subscriptions (P 550/mo)</div>
+          ${[
+            ['Kgosi Freight Ltd.','Monthly','verified','1 May 2026'],
+            ['Bontle Express','Annual','verified','1 Mar 2027'],
+            ['CoolChain Bots','Monthly','overdue','Overdue'],
+            ['Molapo Logistics','Monthly','cancelled','Ended'],
+          ].map(([n,p,s,d]) => `
+          <div class="rcr">
+            <div><div class="b xs">${n}</div><div class="xs mu">${p} · ${d}</div></div>
+            <div class="flex ac gap1">
+              <span class="bdg ${s==='verified'?'bgg':s==='overdue'?'bgr':'bgx'}">${s}</span>
+              ${s==='overdue' ? `<button class="btn ba bsm" onclick="toast('Payment reminder sent.')">Remind</button>` : ''}
+            </div>
+          </div>`).join('')}
+        </div>
+        <div class="card">
+          <div class="b xs mb1">Driver Registrations (P 250 once-off)</div>
+          ${[
+            ['Mpho Ditsebe','Apr 10','P 250'],
+            ['Oitshepile K.','Apr 09','P 250'],
+            ['Tshepang T.','Apr 08','P 250'],
+            ['Ditiro H.','Apr 07','P 250'],
+          ].map(([n,d,a]) => `
+          <div class="rcr">
+            <div><div class="b xs">${n}</div><div class="xs mu">${d}</div></div>
+            <span class="b xs gn">${a}</span>
+          </div>`).join('')}
+          <div class="xs mu mt1">Total: <span class="b am">P 85,500</span> from 342 drivers</div>
+        </div>
+      </div>
+      <div class="b xs mb1">Transaction Ledger</div>
+      <div class="tw"><table>
+        <thead><tr><th>ID</th><th>Job</th><th>Owner</th><th>Driver</th><th>Gross</th><th>Comm.</th><th>Payout</th><th>Status</th></tr></thead>
+        <tbody>
+        ${[
+          ['TXN-8821','#1043','Kgosi Freight','Tshepang T.','P14,000','P1,400','P12,600','completed'],
+          ['TXN-8819','#1042','Bontle Express','Mpho D.','P8,000','P800','P7,200','pending'],
+          ['TXN-8815','#1039','Kgosi Freight','Oitshepile K.','P5,500','P550','P4,950','completed'],
+          ['TXN-8810','#1035','CoolChain','Ditiro H.','P9,000','P900','P8,100','disputed'],
+        ].map(([tx,job,ow,dr,gr,cm,py,s]) => `<tr>
+          <td class="xs am">${tx}</td><td class="xs">${job}</td>
+          <td class="xs">${ow}</td><td class="xs">${dr}</td>
+          <td class="b xs">${gr}</td><td class="xs mu">${cm}</td>
+          <td class="b xs gn">${py}</td>
+          <td>
+            <span class="bdg ${s==='completed'?'bgg':s==='disputed'?'bgr':'bga'}">${s}</span>
+            ${s==='disputed' ? ` <button class="btn bb bsm" onclick="toast('Dispute case opened.')">Resolve</button>` : ''}
+          </td>
+        </tr>`).join('')}
+        </tbody>
+      </table></div>`,
+
+    /* ── REPORTS ── */
+    'reports': () => `
+      <div class="ph">
+        <div><div class="pt">Analytics &amp; Reports</div><div class="ps">Revenue trends, routes &amp; cargo breakdown</div></div>
+        <button class="btn bgh bsm" onclick="toast('PDF exported.')">Export PDF</button>
+      </div>
+      <div class="g2 mb1">
+        <div class="card">
+          <div class="b xs mb1">Monthly Revenue (BWP × 1,000)</div>
+          ${barChart([88,102,95,118,134,148,112,126,139,107,158,142].map((v,i) => ({
+            v, l:['J','F','M','A','M','J','J','A','S','O','N','D'][i], mx:158
+          })))}
+        </div>
+        <div class="card">
+          <div class="b xs mb1">Cargo Type Split</div>
+          ${[['General Freight',34],['Construction',27],['Agricultural',22],['Hazardous',10],['Refrigerated',7]].map(([t,p]) => `
+          <div class="mb1">
+            <div class="flex jb xs mb1"><span>${t}</span><span class="b am">${p}%</span></div>
+            <div class="pb"><div class="pf" style="width:${p}%"></div></div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="b xs mb1">Top Routes by Revenue</div>
+      <div class="tw"><table>
+        <thead><tr><th>Route</th><th>Jobs</th><th>Revenue</th><th>Avg Price</th><th>Growth</th></tr></thead>
+        <tbody>
+        ${[
+          ['Gaborone → Francistown',142,'P312K','P2,197','↑12%'],
+          ['Gaborone → Maun',88,'P528K','P6,000','↑8%'],
+          ['Lobatse → Kasane',34,'P476K','P14,000','↑22%'],
+          ['Francistown → Gaborone',118,'P283K','P2,398','↑5%'],
+        ].map(([r,j,rv,a,g]) => `<tr>
+          <td class="b xs">${r}</td><td class="xs">${j}</td>
+          <td class="b xs gn">${rv}</td><td class="xs">${a}</td>
+          <td class="xs gn">${g}</td>
+        </tr>`).join('')}
+        </tbody>
+      </table></div>`,
+
+    /* ── NOTIFICATIONS ── */
+    'notifs': () => `
+      <div class="ph">
+        <div><div class="pt">Notifications</div></div>
+        <button class="btn bgh bsm" onclick="toast('All marked read.')">Mark all read</button>
+      </div>
+      ${notifList()}`,
+  };
+
+  /* ── LOAD DEFAULT PAGE ── */
+  navTo('overview');
+</script>
+</body>
+</html>
